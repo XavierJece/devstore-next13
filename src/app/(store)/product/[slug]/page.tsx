@@ -1,4 +1,6 @@
 import Image from 'next/image'
+import { Metadata } from 'next'
+
 import { api } from '~/data/api'
 import { Product } from '~/data/types/product'
 
@@ -8,20 +10,30 @@ interface ProductProps {
   }
 }
 
-export default async function ProductPage({ params }: ProductProps) {
+async function getProduct(slug: string): Promise<Product> {
+  const response = await api(`/products/${slug}`, {
+    next: {
+      revalidate: 60 * 60, // 1 hour
+    },
+  })
+
+  const product = await response.json()
+
+  return product
+}
+
+export async function generateMetadata({
+  params,
+}: ProductProps): Promise<Metadata> {
   const product = await getProduct(params.slug)
 
-  async function getProduct(slug: string): Promise<Product> {
-    const response = await api(`/products/${slug}`, {
-      next: {
-        revalidate: 60 * 60, // 1 hour
-      },
-    })
-
-    const product = await response.json()
-
-    return product
+  return {
+    title: product.title,
   }
+}
+
+export default async function ProductPage({ params }: ProductProps) {
+  const product = await getProduct(params.slug)
 
   return (
     <div className="relative grid max-h-[860px] grid-cols-3">
@@ -52,7 +64,6 @@ export default async function ProductPage({ params }: ProductProps) {
             })}
           </span>
           <span className="text-sm text-zinc-400">
-            Em 12x s/ juros de{' '}
             {(product.price / 12).toLocaleString('pt-BR', {
               style: 'currency',
               currency: 'BRL',

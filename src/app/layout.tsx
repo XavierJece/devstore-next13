@@ -7,7 +7,12 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
-export const metadata: Metadata = { title: 'devstore' }
+export const metadata: Metadata = {
+  title: {
+    template: '%s | devstore',
+    default: 'devstore',
+  },
+}
 
 export default function RootLayout({
   children,
